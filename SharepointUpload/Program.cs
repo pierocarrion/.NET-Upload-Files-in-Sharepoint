@@ -14,49 +14,9 @@ namespace Contoso.Core.LargeFileUpload
     {
         static void Main(string[] args)
         {
-            string webUrl = "https://SITE.sharepoint.com/sites//";
-
-            string username = "";
-            string password = "";
-
-            using (ClientContext ctx = new ClientContext(webUrl))
-            {
-                
-                string account = username;
-                var secret = new SecureString();
-                foreach (char c in password)
-                {
-                    secret.AppendChar(c);
-                }
-                ctx.Credentials = new SharePointOnlineCredentials(account, secret);
-                ctx.Load(ctx.Web);
-                ctx.ExecuteQuery();
-
-                List list = ctx.Web.Lists.GetByTitle("Documentos");
-
-                string rutaFunciona = "/sites/SITE/Documentos%20compartidos/Arquitectura";
-                string ruta = "/sites/SITE/Documentos%20compartidos/Arquitectura%2FGeneral";
-                FileCollection files = list.RootFolder.Folders.GetByUrl(ruta).Files;
-
-                ctx.Load(files);
-                ctx.ExecuteQuery();
-
-                foreach (Microsoft.SharePoint.Client.File file in files)
-                {
-                    FileInformation fileinfo = Microsoft.SharePoint.Client.File.OpenBinaryDirect(ctx, file.ServerRelativeUrl);
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine(file.Name);
-                    
-                    ctx.ExecuteQuery();
-
-                    using (FileStream filestream = new FileStream(Environment.CurrentDirectory + "\\"+ file.Name, FileMode.Create))
-                    {
-                        fileinfo.Stream.CopyTo(filestream);
-                    }
-
-                }
-            };
-
+            string webUrl = "";                                    //https://domain.sharepoint.com/sites/sitename
+            string username = "";                                  //username@domain.com.pe                         
+            string password = "";                                  //password                                       
 
 
             ClientContext ctxSite = new ClientContext(webUrl);
@@ -70,51 +30,84 @@ namespace Contoso.Core.LargeFileUpload
             ctxSite.ExecuteQuery();
 
             Web web = ctxSite.Web;
-            var docLibs = ctxSite.LoadQuery(web.Lists.Where(l => l.BaseTemplate == 101));  //DocumentLibrary only
+            var docLibs = ctxSite.LoadQuery(web.Lists.Where(l => l.BaseTemplate == 101));           //DocumentLibrary only
             ctxSite.ExecuteQuery();
 
             foreach (var list in docLibs)
             {
-                //Console.WriteLine(list.Title);
+                Console.WriteLine(list.Title);
                 ctxSite.Load(list.RootFolder.Folders);
                 ctxSite.ExecuteQuery();
 
                 string listTitle = list.Title;
 
-                string folderName = "Carpeta";
+                string folderName = "Arquitectura";                                                 //Personal Testing
                 string driveName = Environment.CurrentDirectory;
-                //Console.WriteLine("List Tile ------------------------------- " + listTitle);
+
                 foreach (Folder folder in list.RootFolder.Folders)
                 {
                     ctxSite.Load(folder.Files);
                     ctxSite.ExecuteQuery();
-
-                    if (String.Equals(folder.Name, folderName, StringComparison.OrdinalIgnoreCase))
+                    if (true)   /*String.Equals(folder.Name, folderName, StringComparison.OrdinalIgnoreCase)*/         // Personal Testing
                     {
-                        var folderDestination = driveName+@":\Test\SharePoint\" + listTitle + @"\" + folderName + @"\";
+                        var folderDestination = Environment.CurrentDirectory;
                         ctxSite.Load(folder.Files);
+                        ctxSite.Load(folder.Folders);
                         ctxSite.ExecuteQuery();
 
+
+
+                        foreach (var folderT in folder.Folders)
+                        {
+                            Console.WriteLine("SubFolder: " + folderT.Name);                          // Personal Testing
+                            //Obtain files the require folder
+                            ctxSite.Load(folderT.Files);
+                            ctxSite.ExecuteQuery();
+                            foreach (var file in folderT.Files)
+                            {
+                                Console.WriteLine("FileName: " + file.Name);                                  // Personal Testing
+                                /*
+                                FileInformation fileinfo = Microsoft.SharePoint.Client.File.OpenBinaryDirect(ctxSite, file.ServerRelativeUrl);
+                                Console.ForegroundColor = ConsoleColor.Red;
+                                Console.WriteLine(file.Name);
+                                ctxSite.ExecuteQuery();
+
+                                using (FileStream filestream = new FileStream(driveName + "\\" + file.Name, FileMode.Create))
+                                {
+                                    fileinfo.Stream.CopyTo(filestream);
+                                }*/
+                            }
+                        }
+                        //
+                        
                         foreach (var file in folder.Files)
                         {
-                            var fileName = Path.Combine(folderDestination, file.Name);
-                            if (!System.IO.File.Exists(fileName))
+                            try
                             {
-                                Directory.CreateDirectory(folderDestination);
-                                var fileRef = file.ServerRelativeUrl;
-                                var fileInfo = Microsoft.SharePoint.Client.File.OpenBinaryDirect(ctxSite, fileRef);
-                                using (var fileStream = System.IO.File.Create(fileName))
+                                var fileName = Path.Combine(folderDestination, file.Name);
+                                Console.WriteLine($"* FILENAME: {fileName}");
+                                if (!System.IO.File.Exists(fileName))
                                 {
-                                    fileInfo.Stream.CopyTo(fileStream);
+                                    Directory.CreateDirectory(folderDestination);
+                                    var fileRef = file.ServerRelativeUrl;
+                                    var fileInfo = Microsoft.SharePoint.Client.File.OpenBinaryDirect(ctxSite, fileRef);
+                                    using (var fileStream = System.IO.File.Create(fileName))
+                                    {
+                                        //fileInfo.Stream.CopyTo(fileStream);
+                                    }
                                 }
+                            }
+                            catch (Exception ex)
+                            {
+                                continue;   
                             }
                         }
                         Console.WriteLine("Downloaded the file in " + folderDestination);
                     }
-
                 }
-
             }
+            Console.ReadLine();
         }
     }
 }
+
