@@ -30,7 +30,7 @@ namespace Contoso.Core.LargeFileUpload
             ctxSite.ExecuteQuery();
 
             Web web = ctxSite.Web;
-            var docLibs = ctxSite.LoadQuery(web.Lists.Where(l => l.BaseTemplate == 101));           //DocumentLibrary only
+            var docLibs = ctxSite.LoadQuery(web.Lists.Where(l => l.BaseTemplate == 101));                               //DocumentLibrary only
             ctxSite.ExecuteQuery();
 
             foreach (var list in docLibs)
@@ -41,7 +41,7 @@ namespace Contoso.Core.LargeFileUpload
 
                 string listTitle = list.Title;
 
-                string folderName = "Arquitectura";                                                 //Personal Testing
+                string folderName = "Arquitectura";                                                                     //Personal Testing
                 string driveName = Environment.CurrentDirectory;
 
                 foreach (Folder folder in list.RootFolder.Folders)
@@ -59,13 +59,13 @@ namespace Contoso.Core.LargeFileUpload
 
                         foreach (var folderT in folder.Folders)
                         {
-                            Console.WriteLine("SubFolder: " + folderT.Name);                          // Personal Testing
+                            Console.WriteLine("SubFolder: " + folderT.Name);                                            // Personal Testing
                             //Obtain files the require folder
                             ctxSite.Load(folderT.Files);
                             ctxSite.ExecuteQuery();
                             foreach (var file in folderT.Files)
                             {
-                                Console.WriteLine("FileName: " + file.Name);                                  // Personal Testing
+                                Console.WriteLine("FileName: " + file.Name);                                            // Personal Testing
                                 /*
                                 FileInformation fileinfo = Microsoft.SharePoint.Client.File.OpenBinaryDirect(ctxSite, file.ServerRelativeUrl);
                                 Console.ForegroundColor = ConsoleColor.Red;
